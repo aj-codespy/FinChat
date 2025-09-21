@@ -45,7 +45,7 @@ def load_data_for_company(company_name):
         print(f"📈 APP: Ticker mapped to {ticker}")
         
         print(f"📰 APP: Fetching news for {company_name}")
-        st.session_state.news_df = news_sentiment.fetch_and_process_news(company_name)
+        st.session_state.news_df = news_sentiment.fetch_and_process_news(ticker)
         print(f"📊 APP: News DataFrame shape: {st.session_state.news_df.shape}")
         
         print(f"📈 APP: Fetching stock data for {ticker}")
