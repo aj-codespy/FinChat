@@ -12,9 +12,13 @@ def get_gemini_response(question, chat_history, company_info, news_context, doc_
     Generates a response from Gemini for the general finance chatbot.
     Implements the RAG architecture by augmenting the prompt with real-time context.
     """
+    print(f"💬 CHAT: Starting get_gemini_response")
+    
     if not GEMINI_API_KEY:
+        print(f"❌ CHAT: GEMINI_API_KEY not configured")
         return "Gemini API key is not configured.", chat_history
 
+    print(f"🤖 CHAT: Configuring Gemini model")
     model = genai.GenerativeModel('gemini-2.0-flash-lite')
     
     context = f"""

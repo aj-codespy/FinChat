@@ -61,16 +61,21 @@ def summarize_document_map_reduce(text_chunks):
     """
     Generates a comprehensive summary using a simplified approach.
     """
+    print(f"📄 DOC: Starting summarize_document_map_reduce with {len(text_chunks)} chunks")
+    
     if not text_chunks or not GEMINI_API_KEY:
+        print(f"❌ DOC: Missing text_chunks or GEMINI_API_KEY")
         return "Document is empty, could not be read, or Gemini API key is missing."
 
     try:
         # Configure Gemini
+        print(f"🤖 DOC: Configuring Gemini API")
         genai.configure(api_key=GEMINI_API_KEY)
         model = genai.GenerativeModel('gemini-2.0-flash-lite')
         
         # Combine all text chunks
         combined_text = "\n\n".join(text_chunks)
+        print(f"📝 DOC: Combined text length: {len(combined_text)} characters")
         
         # Create a comprehensive prompt
         prompt = f"""
@@ -89,10 +94,13 @@ def summarize_document_map_reduce(text_chunks):
         """
         
         # Generate summary
+        print(f"🤖 DOC: Generating summary with Gemini")
         response = model.generate_content(prompt)
+        print(f"✅ DOC: Summary generated successfully")
         return response.text
         
     except Exception as e:
+        print(f"❌ DOC: Error generating summary: {e}")
         return f"Error generating summary: {str(e)}"
 
 def get_conversational_chain():

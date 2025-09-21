@@ -3,14 +3,28 @@ import plotly.graph_objects as go
 
 def get_stock_data(ticker, period="1mo"):
     """Fetches historical stock data for a given ticker."""
-    stock = yf.Ticker(ticker)
-    hist = stock.history(period=period)
-    return hist
+    print(f"📈 STOCK: Starting get_stock_data for {ticker}")
+    try:
+        stock = yf.Ticker(ticker)
+        print(f"📈 STOCK: Created yfinance Ticker for {ticker}")
+        hist = stock.history(period=period)
+        print(f"📈 STOCK: Fetched {len(hist)} days of data for {ticker}")
+        return hist
+    except Exception as e:
+        print(f"❌ STOCK: Error fetching stock data for {ticker}: {e}")
+        return pd.DataFrame()
 
 def get_company_info(ticker):
     """Fetches basic company information."""
-    stock = yf.Ticker(ticker)
-    info = stock.info
+    print(f"ℹ️ STOCK: Starting get_company_info for {ticker}")
+    try:
+        stock = yf.Ticker(ticker)
+        print(f"ℹ️ STOCK: Created yfinance Ticker for {ticker}")
+        info = stock.info
+        print(f"ℹ️ STOCK: Fetched company info for {ticker}")
+    except Exception as e:
+        print(f"❌ STOCK: Error fetching company info for {ticker}: {e}")
+        return {}
     # Format market cap for readability
     market_cap = info.get('marketCap', 0)
     if market_cap > 1_000_000_000_000:

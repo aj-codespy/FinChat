@@ -36,17 +36,31 @@ TICKER_MAP = {"NVIDIA": "NVDA", "Apple": "AAPL", "Tesla": "TSLA", "Infosys": "IN
 
 def load_data_for_company(company_name):
     """Loads all necessary data when a company is selected."""
+    print(f"🏢 APP: Starting load_data_for_company for {company_name}")
+    
     with st.spinner(f"Fetching data for {company_name}..."):
         st.session_state.company = company_name
         ticker = TICKER_MAP.get(company_name, company_name)
         st.session_state.ticker = ticker
+        print(f"📈 APP: Ticker mapped to {ticker}")
+        
+        print(f"📰 APP: Fetching news for {company_name}")
         st.session_state.news_df = news_sentiment.fetch_and_process_news(company_name)
+        print(f"📊 APP: News DataFrame shape: {st.session_state.news_df.shape}")
+        
+        print(f"📈 APP: Fetching stock data for {ticker}")
         st.session_state.stock_df = stock_data.get_stock_data(ticker)
+        print(f"📊 APP: Stock DataFrame shape: {st.session_state.stock_df.shape}")
+        
+        print(f"ℹ️ APP: Fetching company info for {ticker}")
         st.session_state.company_info = stock_data.get_company_info(ticker)
+        print(f"ℹ️ APP: Company info: {st.session_state.company_info}")
+        
         # Reset other states
         st.session_state.doc_summary = ""
         st.session_state.doc_processed = False
         st.session_state.fin_chat_history = []
+        print(f"✅ APP: Completed load_data_for_company for {company_name}")
 
 # Initialize data for the default company on first load
 if st.session_state.stock_df.empty:
@@ -137,12 +151,17 @@ with tab1:
 
     # Bottom Panel: Latest News
     st.subheader("Latest News")
+    print(f"📰 APP: Displaying news section - DataFrame empty: {st.session_state.news_df.empty}")
+    print(f"📊 APP: News DataFrame shape: {st.session_state.news_df.shape}")
+    
     if not st.session_state.news_df.empty:
+        print(f"✅ APP: Showing news DataFrame with {len(st.session_state.news_df)} articles")
         st.dataframe(
             st.session_state.news_df[['Published At', 'Headline', 'Sentiment', 'Summary']],
             use_container_width=True, hide_index=True
         )
     else:
+        print(f"⚠️ APP: News DataFrame is empty, showing warning")
         st.warning("No recent news found. Check your Finnhub API key.")
 
 # --- Doc Chat Tab ---
