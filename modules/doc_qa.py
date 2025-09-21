@@ -2,7 +2,7 @@ import os
 import google.generativeai as genai
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
@@ -50,7 +50,8 @@ def get_vector_store(text_chunks):
         st.error("Cannot create vector store. Check API key or document content.")
         return
     try:
-        embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+        # Pass the API key directly to the embeddings model
+        embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GEMINI_API_KEY)
         vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
         vector_store.save_local("faiss_index")
     except Exception as e:
@@ -64,12 +65,12 @@ def summarize_document_map_reduce(text_chunks):
         return "Document is empty, could not be read, or Gemini API key is missing."
 
     docs = [Document(page_content=t) for t in text_chunks]
-    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite", temperature=0.2)
+    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite", temperature=0.2, google_api_key=GEMINI_API_KEY)
     
     # Map prompt
     map_template = """
     Below is a section of a financial document:
-    "{docs}"
+    "{text}"
     Based on this, please identify and summarize the key financial results, risks, and strategic initiatives mentioned.
     Helpful Answer:"""
     map_prompt = PromptTemplate.from_template(map_template)
@@ -77,7 +78,7 @@ def summarize_document_map_reduce(text_chunks):
     # Reduce prompt
     reduce_template = """
     You have been provided a series of summaries from a financial document.
-    "{doc_summaries}"
+    "{text}"
     Synthesize these into a final, cohesive summary. The summary should be well-organized, highlighting:
     1. Overall financial performance (revenue, profit, key metrics).
     2. Major strategic initiatives or changes.
@@ -110,7 +111,7 @@ def get_conversational_chain():
 
     Answer:
     """
-    model = ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite", temperature=0.3)
+    model = ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite", temperature=0.3, google_api_key=GEMINI_API_KEY)
     prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
     chain = load_qa_chain(model, chain_type="stuff", prompt=prompt)
     return chain
@@ -120,7 +121,8 @@ def user_input(user_question):
     if not GEMINI_API_KEY:
         return "Gemini API key is not configured."
         
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    # Pass the API key directly to the embeddings model
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GEMINI_API_KEY)
     
     try:
         new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
