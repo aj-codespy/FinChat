@@ -15,12 +15,12 @@ def get_stock_data(ticker, period="1mo"):
         print(f"📈 STOCK: Created yfinance Ticker for {ticker}")
         hist = stock.history(period=period)
         if hist.empty:
-            print(f"⚠️ STOCK: No historical data found for {ticker} for the period {period}.")
+            print(f"⚠️ STOCK: No historical data found for {ticker} for the period {period}. Data fetching FAILED.")
         else:
-            print(f"📈 STOCK: Fetched {len(hist)} days of data for {ticker}")
+            print(f"📈 STOCK: Successfully fetched {len(hist)} days of data for {ticker}. Data fetching SUCCESSFUL.")
         return hist
     except Exception as e:
-        print(f"❌ STOCK: Error fetching stock data for {ticker}: {e}")
+        print(f"❌ STOCK: Error fetching stock data for {ticker}: {e}. Data fetching FAILED.")
         return pd.DataFrame()
 
 def get_company_info(ticker):

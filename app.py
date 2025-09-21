@@ -1,230 +1,253 @@
-import os
 import streamlit as st
 import pandas as pd
-from modules import news_sentiment, stock_data, doc_qa, chat
-from modules.database import COMPREHENSIVE_STOCKS_DATABASE
+import plotly.express as px
+import asyncio
 
-# Fix OpenMP library conflict
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
-
-# --- Page Configuration ---
-st.set_page_config(
-    page_title="FinChat: Financial Insights Assistant",
-    page_icon="🚀",
-    layout="wide"
+# Import all necessary functions from your modules
+from modules.data_fetcher import EnhancedFinancialDataFetcher
+from modules import visualizations
+from modules.stock_data import get_company_info # Import get_company_info
+from modules.chat import (
+    get_comprehensive_response, 
+    translate_text, 
+    generate_stock_summary, 
+    analyze_news_sentiment,
+    get_data_fetcher
+)
+from modules.doc_qa import (
+    get_document_text, 
+    get_text_chunks, 
+    get_vector_store, 
+    summarize_document_with_full_context, 
+    user_input
 )
 
-# --- Helper Functions ---
-def get_company_ticker_map():
-    """Creates a mapping from company name to ticker from the database."""
-    stocks = {**COMPREHENSIVE_STOCKS_DATABASE["INDIAN_STOCKS"], **COMPREHENSIVE_STOCKS_DATABASE["US_STOCKS"]}
-    return {info["name"]: ticker for ticker, info in stocks.items()}
+# --- PAGE CONFIGURATION ---
+st.set_page_config(
+    page_title="FinChat - AI Financial Assistant", 
+    layout="wide", 
+    initial_sidebar_state="expanded"
+)
 
-COMPANY_TICKER_MAP = get_company_ticker_map()
+# --- DATA LOADING ---
+# This loads the data once using the functions from your modules
+fetcher = EnhancedFinancialDataFetcher()
+all_stocks_list = fetcher.get_all_stocks()
+if not all_stocks_list:
+    st.error("Failed to load stock database. The application cannot start.")
+    st.stop()
+all_stocks_df = pd.DataFrame(all_stocks_list)
 
-# --- App State Management ---
-if 'company' not in st.session_state:
-    st.session_state.company = 'Apple Inc.'
-if 'ticker' not in st.session_state:
-    st.session_state.ticker = 'AAPL'
-if 'news_df' not in st.session_state:
-    st.session_state.news_df = pd.DataFrame()
-if 'stock_df' not in st.session_state:
-    st.session_state.stock_df = pd.DataFrame()
-if 'company_info' not in st.session_state:
-    st.session_state.company_info = {}
-if 'doc_summary' not in st.session_state:
-    st.session_state.doc_summary = ""
-if 'doc_processed' not in st.session_state:
-    st.session_state.doc_processed = False
-if 'fin_chat_history' not in st.session_state:
-    st.session_state.fin_chat_history = []
+# --- PAGE RENDERING FUNCTIONS ---
 
-def load_data_for_company(company_name):
-    """Loads all necessary data when a company is selected."""
-    print(f"🏢 APP: Starting load_data_for_company for {company_name}")
+def render_home_page():
+    st.title("Welcome to FinChat: Your AI-Powered Financial Co-Pilot 🚀")
+    st.markdown("---")
+    st.markdown("""
+    **FinChat is a comprehensive suite of tools designed to democratize financial analysis for everyone, from seasoned professionals to curious students.**
     
-    with st.spinner(f"Fetching data for {company_name}..."):
-        st.session_state.company = company_name
-        ticker = COMPANY_TICKER_MAP.get(company_name)
-        if not ticker:
-            st.error(f"Could not find ticker for {company_name}")
-            return
-            
-        st.session_state.ticker = ticker
-        print(f"📈 APP: Ticker mapped to {ticker}")
+    Navigating the world of finance can be complex. Information is scattered, data is overwhelming, and reliable analysis is hard to come by. FinChat solves this by integrating a powerful, curated database with advanced AI to give you clear, actionable insights in seconds.
+    """)
+    
+    st.subheader("What We Offer:")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.info("📊 **Stock Analyzer**")
+        st.write("An interactive dashboard to visualize and analyze data for major Indian and US companies. Compare market caps, P/E ratios, and sector compositions with dynamic charts.")
+    
+    with col2:
+        st.success("📄 **Doc Chat**")
+        st.write("Upload your own financial documents (like annual reports or PDFs) and chat with them. Our AI will read the document and answer your specific questions based on its content.")
         
-        print(f"📰 APP: Fetching news for {company_name} ({ticker})")
-        st.session_state.news_df = news_sentiment.fetch_and_process_news(ticker)
-        print(f"📊 APP: News DataFrame shape: {st.session_state.news_df.shape}")
+    with col3:
+        st.warning("💬 **Multi-lingual FinChat AI**")
+        st.write("Our advanced conversational AI, designed for all users across India. Ask complex financial questions in languages like Hindi, Marathi, or Tamil, and get comprehensive, data-driven answers in the same language.")
         
-        print(f"📈 APP: Fetching stock data for {ticker}")
-        st.session_state.stock_df = stock_data.get_stock_data(ticker)
-        print(f"📊 APP: Stock DataFrame shape: {st.session_state.stock_df.shape}")
+    st.markdown("---")
+    st.write("**Get started by selecting a feature from the sidebar on the left.**")
+
+
+def render_stock_analyzer_page():
+    st.header("📊 Stock Analyzer Dashboard")
+    
+    # --- FILTERS ---
+    st.sidebar.header("Stock Analyzer Filters")
+    
+    selected_country = st.sidebar.selectbox("Filter Dashboard by Country", ["All", "India", "USA"])
+    unique_sectors = sorted(all_stocks_df['sector'].unique())
+    selected_sector = st.sidebar.selectbox("Filter Dashboard by Sector", ["All"] + unique_sectors)
+
+    # --- FILTERING LOGIC ---
+    filtered_df = all_stocks_df.copy()
+    if selected_country != "All":
+        filtered_df = filtered_df[filtered_df['country'] == selected_country]
+    if selected_sector != "All":
+        filtered_df = filtered_df[filtered_df['sector'] == selected_sector]
         
-        print(f"ℹ️ APP: Fetching company info for {ticker}")
-        st.session_state.company_info = stock_data.get_company_info(ticker)
-        print(f"ℹ️ APP: Company info: {st.session_state.company_info}")
-        
-        # Reset other states
-        st.session_state.doc_summary = ""
-        st.session_state.doc_processed = False
-        st.session_state.fin_chat_history = []
-        print(f"✅ APP: Completed load_data_for_company for {company_name}")
+    # Dynamically update the list of available companies based on the filters
+    all_company_names = sorted(all_stocks_df['name'].unique())
+    selected_company = st.sidebar.selectbox("Select a Stock for Detailed Analysis", ["None"] + all_company_names)
 
-# Initialize data for the default company on first load
-if st.session_state.stock_df.empty:
-    load_data_for_company(st.session_state.company)
+    # --- RENDER DASHBOARD ---
+    if filtered_df.empty:
+        st.warning("No stocks match the selected filters.")
+        st.stop()
 
-
-# --- Sidebar ---
-with st.sidebar:
-    st.image("https://i.imgur.com/M2J52aH.png", width=100)
-    st.title("FinChat")
-    
-    company_list = sorted(list(COMPANY_TICKER_MAP.keys()))
-    selected_company = st.selectbox(
-        "Select Company",
-        company_list,
-        index=company_list.index(st.session_state.company)
-    )
-
-    # If selection changes, reload data
-    if selected_company != st.session_state.company:
-        load_data_for_company(selected_company)
-        st.rerun()
-
-    st.divider() 
-    
-    st.header("Upload Financial Report")
-    uploaded_file = st.file_uploader("Upload PDF or DOCX", type=['pdf', 'docx'], label_visibility="collapsed")
-
-    if uploaded_file and st.button("Process Document"):
-        with st.spinner("Processing document... This may take a moment."):
-            raw_text = doc_qa.get_document_text(uploaded_file)
-            if raw_text:
-                text_chunks = doc_qa.get_text_chunks(raw_text)
-                doc_qa.get_vector_store(text_chunks)
-                st.session_state.doc_summary = doc_qa.summarize_document_with_full_context(text_chunks)
-                st.session_state.doc_processed = True
-                st.success("Document processed! Navigate to 'Doc Chat'.")
-            else:
-                st.error("Could not read text from the document.")
-
-    st.divider() 
-    st.info("Ensure API keys for NewsAPI and Gemini are set in Streamlit secrets for deployed apps.")
-
-
-# --- Main Area Tabs ---
-tab1, tab2, tab3 = st.tabs(["📊 Dashboard", "📄 Doc Chat", "💬 Fin Chat"])
-
-# --- Dashboard Tab ---
-with tab1:
-    st.header(f"Dashboard for {st.session_state.company} ({st.session_state.ticker})")
-    
-    # Top Panel: Company Overview
-    info = st.session_state.company_info
-    st.subheader("Company Fundamentals")
-
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Market Cap", info.get("Market Cap", "N/A"))
-
-    pe_ratio = info.get('P/E Ratio')
-    col2.metric("P/E Ratio", f"{pe_ratio:.2f}" if isinstance(pe_ratio, (int, float)) else "N/A")
-    
-    col3.metric("Sector", info.get("Sector", "N/A"))
-    col4.metric("Industry", info.get("Industry", "N/A"))
-
-    website = info.get('Website', 'N/A')
-    if website and website != 'N/A':
-        st.markdown(f"**Website:** [{website}]({website})")
+    st.subheader("Key Metrics for Selected Scope")
+    col1, col2, col3 = st.columns(3)
+    avg_mkt_cap = filtered_df['market_cap_usd_b'].mean()
+    avg_pe = filtered_df['pe_ratio'].mean()
+    col1.metric("Companies Shown", f"{filtered_df.shape[0]}")
+    col2.metric("Average Market Cap (USD B)", f"{avg_mkt_cap:.2f}")
+    col3.metric("Average P/E Ratio", f"{avg_pe:.2f}")
 
     st.divider()
 
-    # Middle Panel: Charts
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        st.subheader("Market Performance & Sentiment")
-        stock_fig = stock_data.create_stock_price_chart(st.session_state.stock_df, st.session_state.company)
-        if stock_fig:
-            stock_fig_with_sentiment = stock_data.overlay_sentiment_on_chart(stock_fig, st.session_state.news_df)
-            st.plotly_chart(stock_fig_with_sentiment, use_container_width=True)
-        else:
-            st.warning("Could not load stock data.")
-    with col2:
-        st.subheader("News Sentiment")
-        sentiment_pie_fig = news_sentiment.create_sentiment_pie_chart(st.session_state.news_df)
-        if sentiment_pie_fig:
-            st.plotly_chart(sentiment_pie_fig, use_container_width=True)
-        else:
-            st.warning("Not enough sentiment data for a chart.")
+    c1, c2 = st.columns(2)
+    with c1:
+        st.subheader("Top 15 Companies by Market Cap")
+        fig1 = px.bar(filtered_df.nlargest(15, 'market_cap_usd_b'), x='name', y='market_cap_usd_b', color='sector')
+        st.plotly_chart(fig1, use_container_width=True)
+    with c2:
+        st.subheader("Sector Composition by Company Count")
+        fig3 = px.pie(filtered_df, names='sector', title="Sector Distribution")
+        st.plotly_chart(fig3, use_container_width=True)
+        
+    # --- DETAILED SINGLE-STOCK ANALYSIS VIEW ---
+    if selected_company != "None":
+        st.divider()
+        st.header(f"Deep Dive Analysis for {selected_company}")
+        
+        # This logic is now safe and won't cause an IndexError
+        stock_data_filtered = filtered_df[filtered_df['name'] == selected_company]
+        
+        if not stock_data_filtered.empty:
+            stock_info = stock_data_filtered.iloc[0].to_dict()
+            ticker = stock_info.get('symbol', '')
+            
+            with st.spinner("Generating AI-powered summary..."):
+                st.subheader("📝 AI-Generated Summary")
+                st.info(generate_stock_summary(stock_info))
 
-    # Bottom Panel: Latest News
-    st.subheader("Latest News")
-    print(f"📰 APP: Displaying news section - DataFrame empty: {st.session_state.news_df.empty}")
-    print(f"📊 APP: News DataFrame shape: {st.session_state.news_df.shape}")
-    
-    if not st.session_state.news_df.empty:
-        print(f"✅ APP: Showing news DataFrame with {len(st.session_state.news_df)} articles")
-        st.dataframe(
-            st.session_state.news_df[['Published At', 'Headline', 'Sentiment', 'Summary']],
-            use_container_width=True, hide_index=True
-        )
-    else:
-        print(f"⚠️ APP: News DataFrame is empty, showing warning")
-        st.warning("No recent news found. Check your Finnhub API key.")
+            st.subheader("📊 Key Financial Metrics")
+            company_details = get_company_info(ticker)
+            if company_details:
+                col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
+                col_kpi1.metric("Market Cap", company_details.get("Market Cap", "N/A"))
+                col_kpi2.metric("P/E Ratio", company_details.get("P/E Ratio", "N/A"))
+                col_kpi3.metric("Sector", company_details.get("Sector", "N/A"))
+                col_kpi4.metric("Industry", company_details.get("Industry", "N/A"))
+                if company_details.get("Website") and company_details["Website"] != "N/A":
+                    st.markdown(f"**Website:** [{company_details["Website"]}]({company_details["Website"]})")
+            else:
+                st.warning("Could not fetch detailed company metrics.")
 
-# --- Doc Chat Tab ---
-with tab2:
-    st.header("Document Q&A")
+            col1, col2 = st.columns([2, 1])
+            with col1:
+                with st.spinner(f"Fetching live stock chart for {ticker}..."):
+                    print(f"[APP] Calling create_candlestick_chart with Ticker: {ticker}, Company: {selected_company}")
+                    candlestick_fig = visualizations.create_candlestick_chart(ticker, selected_company)
+                    if candlestick_fig:
+                        st.plotly_chart(candlestick_fig, use_container_width=True)
+                    else:
+                        st.warning("Could not load live stock price chart.")
+            
+            with col2:
+                with st.spinner("Analyzing news sentiment..."):
+                    # Fetch hybrid news (static + live) before analyzing sentiment
+                    hybrid_news_list = fetcher.get_hybrid_news(stock_info)
+                    news_with_sentiment = analyze_news_sentiment(hybrid_news_list)
+                    sentiment_pie_fig = visualizations.create_sentiment_pie_chart(news_with_sentiment)
+                    if sentiment_pie_fig:
+                        st.plotly_chart(sentiment_pie_fig, use_container_width=True)
+                    else:
+                        st.write("No news available for sentiment analysis.")
+
+            st.subheader("News Sentiment Analysis")
+            if 'news_with_sentiment' in locals() and news_with_sentiment:
+                news_df = visualizations.create_news_sentiment_df(news_with_sentiment)
+                st.dataframe(news_df, use_container_width=True, hide_index=True)
+
+
+def render_doc_chat_page():
+    st.header("📄 Chat with Your Document")
+    st.info("Upload a financial PDF or DOCX file to get started. The AI will generate a summary and allow you to ask specific questions about its content.")
     
-    if not st.session_state.doc_processed:
-        st.info("Upload and process a financial document via the sidebar to enable this feature.")
-        st.image("https://i.imgur.com/s8aFE9U.png", caption="Upload a document to get started.")
-    else:
+    uploaded_file = st.file_uploader("Upload your document", type=['pdf', 'docx'], label_visibility="collapsed")
+    
+    if "doc_processed" not in st.session_state:
+        st.session_state.doc_processed = False
+
+    if uploaded_file:
+        if st.button("Process Document"):
+            with st.spinner("Reading and analyzing document..."):
+                raw_text = get_document_text(uploaded_file)
+                if raw_text:
+                    text_chunks = get_text_chunks(raw_text)
+                    get_vector_store(text_chunks)
+                    st.session_state.doc_summary = summarize_document_with_full_context(text_chunks)
+                    st.session_state.doc_processed = True
+                    st.success("Document processed successfully!")
+                else:
+                    st.error("Could not extract text from the document.")
+
+    if st.session_state.doc_processed:
+        st.divider()
         st.subheader("AI-Generated Document Summary")
-        with st.expander("Click to view summary", expanded=True):
-            st.markdown(st.session_state.doc_summary)
+        st.markdown(st.session_state.doc_summary)
         st.divider()
 
-        st.subheader("Chat with Your Document")
-        if user_question := st.chat_input("Ask a specific question about the document's content:"):
+        st.subheader("Ask a Question About the Document")
+        if user_question := st.chat_input("e.g., 'What were the key revenue drivers mentioned?'"):
             with st.chat_message("user"):
                 st.markdown(user_question)
-            
-            with st.spinner("Searching for the answer..."):
-                response = doc_qa.user_input(user_question)
-                with st.chat_message("assistant"):
-                    st.write(response)
+            with st.chat_message("assistant"):
+                with st.spinner("Searching for the answer..."):
+                    response = user_input(user_question)
+                    st.markdown(response)
 
-# --- Fin Chat Tab ---
-with tab3:
-    st.header("Finance Chat")
-    st.info("Ask general financial questions or compare companies using real-time data.")
+async def render_fin_chat_page():
+    st.header("💬 Multi-lingual FinChat AI")
+    lang_map = {"English": "en", "Hindi": "hi", "Marathi": "mr", "Tamil": "ta", "Bengali": "bn"}
+    selected_lang_name = st.selectbox("Select Language", list(lang_map.keys()))
+    target_lang_code = lang_map[selected_lang_name]
 
-    for message in st.session_state.fin_chat_history:
-        role = "user" if message['role'] == "user" else "assistant"
-        with st.chat_message(role):
-            part = message['parts'][0]
-            if isinstance(part, str):
-                st.markdown(part)
-            else:
-                st.markdown(part['text'])
+    st.info(f"You can now ask questions in {selected_lang_name}. The AI will analyze the data in English and reply to you in {selected_lang_name}.")
 
-    if prompt := st.chat_input("Ask about market trends, compare stocks, etc."):
-        st.session_state.fin_chat_history.append({"role": "user", "parts": [{"text": prompt}]})
+    if "fin_messages" not in st.session_state:
+        st.session_state.fin_messages = []
+
+    for message in st.session_state.fin_messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    if prompt := st.chat_input(f"Ask a financial question in {selected_lang_name}..."):
+        st.session_state.fin_messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
+        
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking... Analyzing data and translating..."):
+                # The translation calls are now synchronous
+                english_prompt = await translate_text(prompt, 'en')
+                # Get the cached data fetcher instance
+                data_fetcher_instance = get_data_fetcher()
+                english_response = get_comprehensive_response(question_in_english=english_prompt, _fetcher=data_fetcher_instance)
+                final_response = await translate_text(english_response, target_lang_code, source_language="English")
+                st.markdown(final_response)
+        
+        st.session_state.fin_messages.append({"role": "assistant", "content": final_response})
+        st.rerun()
 
-        with st.spinner("Thinking..."):
-            news_context = st.session_state.news_df[['Headline', 'Summary']].to_string(index=False)
-            doc_context = st.session_state.doc_summary if st.session_state.doc_processed else ""
-            combined_context = f"{news_context}\n\n{doc_context}"
-            
-            response_text, updated_history = chat.get_gemini_response(
-                prompt, combined_context, st.session_state.fin_chat_history
-            )
-            st.session_state.fin_chat_history = updated_history
-            
-            with st.chat_message("assistant"):
-                st.markdown(response_text)
+# --- MAIN APP LOGIC ---
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to", ["Home", "Stock Analyzer", "Doc Chat", "FinChat AI"], key="navigation_radio")
+
+if page == "Home":
+    render_home_page()
+elif page == "Stock Analyzer":
+    render_stock_analyzer_page()
+elif page == "Doc Chat":
+    render_doc_chat_page()
+elif page == "FinChat AI":
+    asyncio.run(render_fin_chat_page())

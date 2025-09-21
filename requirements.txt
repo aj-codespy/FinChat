@@ -12,3 +12,4 @@ python-docx
 requests
 feedparser
 finnhub-python
+googletrans==4.0.2
