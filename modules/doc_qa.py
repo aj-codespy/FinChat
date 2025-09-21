@@ -59,77 +59,91 @@ def get_vector_store(text_chunks):
 
 def summarize_document_map_reduce(text_chunks):
     """
-    Generates a comprehensive summary using the Map-Reduce technique.
+    Generates a comprehensive summary using a simplified approach.
     """
     if not text_chunks or not GEMINI_API_KEY:
         return "Document is empty, could not be read, or Gemini API key is missing."
 
-    docs = [Document(page_content=t) for t in text_chunks]
-    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite", temperature=0.2, google_api_key=GEMINI_API_KEY)
-    
-    # Map prompt
-    map_template = """
-    Below is a section of a financial document:
-    "{text}"
-    Based on this, please identify and summarize the key financial results, risks, and strategic initiatives mentioned.
-    Helpful Answer:"""
-    map_prompt = PromptTemplate.from_template(map_template)
-    
-    # Reduce prompt
-    reduce_template = """
-    You have been provided a series of summaries from a financial document.
-    "{text}"
-    Synthesize these into a final, cohesive summary. The summary should be well-organized, highlighting:
-    1. Overall financial performance (revenue, profit, key metrics).
-    2. Major strategic initiatives or changes.
-    3. Noteworthy risks or challenges identified.
-    Final Answer:"""
-    reduce_prompt = PromptTemplate.from_template(reduce_template)
-    
-    chain = load_summarize_chain(
-        llm,
-        chain_type="map_reduce",
-        map_prompt=map_prompt,
-        combine_prompt=reduce_prompt,
-        return_intermediate_steps=False,
-    )
-    
     try:
-        summary = chain.invoke({"input_documents": docs})
-        return summary['output_text']
+        # Configure Gemini
+        genai.configure(api_key=GEMINI_API_KEY)
+        model = genai.GenerativeModel('gemini-2.0-flash-lite')
+        
+        # Combine all text chunks
+        combined_text = "\n\n".join(text_chunks)
+        
+        # Create a comprehensive prompt
+        prompt = f"""
+        Please analyze the following financial document and provide a comprehensive summary.
+        
+        Document Content:
+        {combined_text}
+        
+        Please provide a well-organized summary highlighting:
+        1. Overall financial performance (revenue, profit, key metrics)
+        2. Major strategic initiatives or changes
+        3. Noteworthy risks or challenges identified
+        4. Key business insights and recommendations
+        
+        Summary:
+        """
+        
+        # Generate summary
+        response = model.generate_content(prompt)
+        return response.text
+        
     except Exception as e:
-        return f"Error during Map-Reduce summarization: {e}"
+        return f"Error generating summary: {str(e)}"
 
 def get_conversational_chain():
     """Creates a question-answering chain with a custom prompt."""
-    prompt_template = """
-    You are a financial analyst assistant. Answer the question as detailed as possible from the provided context.
-    If the answer is not in the provided context, state that clearly. Do not make up information.
-
-    Context:\n {context}?\n
-    Question: \n{question}\n
-
-    Answer:
-    """
-    model = ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite", temperature=0.3, google_api_key=GEMINI_API_KEY)
-    prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
-    chain = load_qa_chain(model, chain_type="stuff", prompt=prompt)
-    return chain
+    if not GEMINI_API_KEY:
+        return None
+    
+    try:
+        # Configure Gemini
+        genai.configure(api_key=GEMINI_API_KEY)
+        model = genai.GenerativeModel('gemini-2.0-flash-lite')
+        return model
+    except Exception as e:
+        st.error(f"Error configuring Gemini: {e}")
+        return None
 
 def user_input(user_question):
     """Handles user queries against the document vector store."""
     if not GEMINI_API_KEY:
         return "Gemini API key is not configured."
         
-    # Pass the API key directly to the embeddings model
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GEMINI_API_KEY)
-    
     try:
+        # Configure Gemini
+        genai.configure(api_key=GEMINI_API_KEY)
+        model = genai.GenerativeModel('gemini-2.0-flash-lite')
+        
+        # Load vector store and get relevant documents
+        embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GEMINI_API_KEY)
         new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
         docs = new_db.similarity_search(user_question)
-        chain = get_conversational_chain()
-        response = chain({"input_documents": docs, "question": user_question}, return_only_outputs=True)
-        return response["output_text"]
+        
+        # Combine context from relevant documents
+        context = "\n\n".join([doc.page_content for doc in docs])
+        
+        # Create prompt
+        prompt = f"""
+        You are a financial analyst assistant. Answer the question as detailed as possible from the provided context.
+        If the answer is not in the provided context, state that clearly. Do not make up information.
+
+        Context:
+        {context}
+
+        Question: {user_question}
+
+        Answer:
+        """
+        
+        # Generate response
+        response = model.generate_content(prompt)
+        return response.text
+        
     except Exception as e:
         return f"Could not query the document. Ensure it was processed correctly. Error: {e}"
 

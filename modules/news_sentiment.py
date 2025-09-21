@@ -39,8 +39,25 @@ def get_sentiment_and_summary_from_gemini(headline, content, company_name):
     try:
         response = model.generate_content(prompt)
         # Clean the response to ensure it's valid JSON
-        cleaned_response = response.text.strip().lstrip("```json").rstrip("```")
-        result = json.loads(cleaned_response)
+        cleaned_response = response.text.strip()
+        
+        # Remove markdown code blocks if present
+        if cleaned_response.startswith("```json"):
+            cleaned_response = cleaned_response[7:]
+        if cleaned_response.endswith("```"):
+            cleaned_response = cleaned_response[:-3]
+        
+        # Try to find JSON object in the response
+        start_idx = cleaned_response.find('{')
+        end_idx = cleaned_response.rfind('}')
+        
+        if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+            json_str = cleaned_response[start_idx:end_idx + 1]
+            result = json.loads(json_str)
+        else:
+            # Fallback: try to parse the whole response
+            result = json.loads(cleaned_response)
+        
         # Validate keys
         if "sentiment" not in result or "summary" not in result:
              return {"sentiment": "neutral", "summary": "Invalid format from API."}
