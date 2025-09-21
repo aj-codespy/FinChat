@@ -1,0 +1,12 @@
+streamlit
+pandas
+plotly
+yfinance
+google-generativeai
+langchain
+langchain-google-genai
+langchain-community
+faiss-cpu
+pypdf
+python-docx
+requests
