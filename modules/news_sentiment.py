@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import requests
 import google.generativeai as genai
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import json
 import streamlit as st
 
@@ -76,24 +76,13 @@ def fetch_and_process_news(company_name, days=7):
         return pd.DataFrame()
 
     # Calculate date range
-    to_date = datetime.now()
-    from_date = to_date - timedelta(days=days)
-    
-    # Format dates as YYYY-MM-DD for Finnhub API
-    from_date_str = from_date.strftime('%Y-%m-%d')
-    to_date_str = to_date.strftime('%Y-%m-%d')
+    today = datetime.now().date()
+    last_week = today - timedelta(days=days)
 
     try:
-        # Fetch news from Finnhub
-        url = f"https://finnhub.io/api/v1/company-news"
-        params = {
-            'symbol': company_name.upper(),
-            'from': from_date_str,
-            'to': to_date_str,
-            'token': FINNHUB_API_KEY
-        }
-        
-        response = requests.get(url, params=params)
+        # Fetch news from Finnhub using the simpler approach
+        url = f"https://finnhub.io/api/v1/company-news?symbol={company_name.upper()}&from={last_week}&to={today}&token={FINNHUB_API_KEY}"
+        response = requests.get(url)
         response.raise_for_status()
         all_articles = response.json()
         
