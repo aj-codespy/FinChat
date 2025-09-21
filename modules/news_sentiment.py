@@ -21,10 +21,12 @@ def get_sentiment_and_summary_from_gemini(headline, content, company_name):
     """
     Analyzes sentiment and generates a summary for a news article using a single Gemini API call.
     """
-    if not headline or not isinstance(headline, str) or not genai.get_model('models/gemini-2.0-flash-lite'):
+    if not GEMINI_API_KEY:
         return {"sentiment": "neutral", "summary": "API key not configured."}
+    if not headline or not isinstance(headline, str):
+        return {"sentiment": "neutral", "summary": "Invalid headline."}
 
-    model = genai.GenerativeModel('gemini-2.0-flash-lite')
+    model = genai.GenerativeModel('gemini-1.5-flash')
     prompt = f"""
     Analyze the sentiment of the following news article about {company_name}.
     The sentiment must be strictly one of: 'positive', 'negative', or 'neutral'.

@@ -2,6 +2,7 @@ import os
 import streamlit as st
 import pandas as pd
 from modules import news_sentiment, stock_data, doc_qa, chat
+from modules.database import COMPREHENSIVE_STOCKS_DATABASE
 
 # Fix OpenMP library conflict
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
@@ -13,11 +14,19 @@ st.set_page_config(
     layout="wide"
 )
 
+# --- Helper Functions ---
+def get_company_ticker_map():
+    """Creates a mapping from company name to ticker from the database."""
+    stocks = {**COMPREHENSIVE_STOCKS_DATABASE["INDIAN_STOCKS"], **COMPREHENSIVE_STOCKS_DATABASE["US_STOCKS"]}
+    return {info["name"]: ticker for ticker, info in stocks.items()}
+
+COMPANY_TICKER_MAP = get_company_ticker_map()
+
 # --- App State Management ---
 if 'company' not in st.session_state:
-    st.session_state.company = 'NVIDIA'
+    st.session_state.company = 'Apple Inc.'
 if 'ticker' not in st.session_state:
-    st.session_state.ticker = 'NVDA'
+    st.session_state.ticker = 'AAPL'
 if 'news_df' not in st.session_state:
     st.session_state.news_df = pd.DataFrame()
 if 'stock_df' not in st.session_state:
@@ -31,16 +40,17 @@ if 'doc_processed' not in st.session_state:
 if 'fin_chat_history' not in st.session_state:
     st.session_state.fin_chat_history = []
 
-# --- Helper Functions ---
-TICKER_MAP = {"NVIDIA": "NVDA", "Apple": "AAPL", "Tesla": "TSLA", "Infosys": "INFY", "TCS": "TCS.NS"}
-
 def load_data_for_company(company_name):
     """Loads all necessary data when a company is selected."""
     print(f"🏢 APP: Starting load_data_for_company for {company_name}")
     
     with st.spinner(f"Fetching data for {company_name}..."):
         st.session_state.company = company_name
-        ticker = TICKER_MAP.get(company_name, company_name)
+        ticker = COMPANY_TICKER_MAP.get(company_name)
+        if not ticker:
+            st.error(f"Could not find ticker for {company_name}")
+            return
+            
         st.session_state.ticker = ticker
         print(f"📈 APP: Ticker mapped to {ticker}")
         
@@ -72,7 +82,7 @@ with st.sidebar:
     st.image("https://i.imgur.com/M2J52aH.png", width=100)
     st.title("FinChat")
     
-    company_list = list(TICKER_MAP.keys())
+    company_list = sorted(list(COMPANY_TICKER_MAP.keys()))
     selected_company = st.selectbox(
         "Select Company",
         company_list,
@@ -84,7 +94,7 @@ with st.sidebar:
         load_data_for_company(selected_company)
         st.rerun()
 
-    st.divider()
+    st.divider() 
     
     st.header("Upload Financial Report")
     uploaded_file = st.file_uploader("Upload PDF or DOCX", type=['pdf', 'docx'], label_visibility="collapsed")
@@ -101,7 +111,7 @@ with st.sidebar:
             else:
                 st.error("Could not read text from the document.")
 
-    st.divider()
+    st.divider() 
     st.info("Ensure API keys for NewsAPI and Gemini are set in Streamlit secrets for deployed apps.")
 
 
@@ -193,25 +203,29 @@ with tab3:
     st.info("Ask general financial questions or compare companies using real-time data.")
 
     for message in st.session_state.fin_chat_history:
-        role = "user" if message.role == "user" else "assistant"
+        role = "user" if message['role'] == "user" else "assistant"
         with st.chat_message(role):
-            st.markdown(message.parts[0].text)
+            part = message['parts'][0]
+            if isinstance(part, str):
+                st.markdown(part)
+            else:
+                st.markdown(part['text'])
 
     if prompt := st.chat_input("Ask about market trends, compare stocks, etc."):
-        st.session_state.fin_chat_history.append({"role": "user", "parts": [prompt]})
+        st.session_state.fin_chat_history.append({"role": "user", "parts": [{"text": prompt}]}
         with st.chat_message("user"):
             st.markdown(prompt)
 
         with st.spinner("Thinking..."):
             news_context = st.session_state.news_df[['Headline', 'Summary']].to_string(index=False)
             doc_context = st.session_state.doc_summary if st.session_state.doc_processed else ""
+            combined_context = f"{news_context}\n\n{doc_context}"
             
             response_text, updated_history = chat.get_gemini_response(
                 prompt, st.session_state.fin_chat_history,
-                st.session_state.company_info, news_context, doc_context
+                st.session_state.company_info, combined_context
             )
             st.session_state.fin_chat_history = updated_history
             
             with st.chat_message("assistant"):
                 st.markdown(response_text)
-
