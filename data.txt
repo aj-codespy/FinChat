@@ -1,1 +1,394 @@
-finhubb api d37s5gpr01qskrehl3o0d37s5gpr01qskrehl3og
+
+{
+  "INDIAN_STOCKS": {
+    "RELIANCE.NS": {
+      "name": "Reliance Industries",
+      "sector": "Conglomerate",
+      "industry": "Oil & Gas, Telecom, Retail",
+      "market_cap_usd_b": 220.5,
+      "pe_ratio": 28.5,
+      "fifty_two_week_high": 3050.00,
+      "fifty_two_week_low": 2200.00,
+      "about": "Reliance Industries Limited is an Indian multinational conglomerate company, headquartered in Mumbai. It has diverse businesses including energy, petrochemicals, natural gas, retail, telecommunications, mass media, and textiles.",
+      "news": [
+        { "date": "2025-09-20", "source": "LiveMint", "headline": "Reliance Retail set to launch 500 new stores ahead of festive season.", "summary": "Reliance Retail is aggressively expanding its footprint across India with 500 new store launches planned before the Diwali festive season to capture consumer spending." },
+        { "date": "2025-09-18", "source": "Economic Times", "headline": "Jio Platforms reports 15% YoY growth in Q2 profits, ARPU stable.", "summary": "The digital arm of Reliance, Jio Platforms, announced a strong 15% year-over-year profit growth for the second quarter, although Average Revenue Per User (ARPU) remained flat." },
+        { "date": "2025-09-15", "source": "Reuters", "headline": "RIL signs green hydrogen partnership with a leading European firm.", "summary": "In a major push towards clean energy, Reliance Industries has signed a strategic partnership to develop green hydrogen manufacturing facilities in Jamnagar." }
+      ]
+    },
+    "TCS.NS": {
+      "name": "Tata Consultancy Services",
+      "sector": "Technology",
+      "industry": "IT Services",
+      "market_cap_usd_b": 180.2,
+      "pe_ratio": 32.1,
+      "fifty_two_week_high": 4250.00,
+      "fifty_two_week_low": 3000.00,
+      "about": "Tata Consultancy Services is an Indian multinational information technology services and consulting company headquartered in Mumbai. It is a part of the Tata Group and operates in 149 locations across 46 countries.",
+      "news": [
+        { "date": "2025-09-21", "source": "Reuters", "headline": "TCS wins major AI transformation deal from a top US-based bank.", "summary": "TCS has secured a multi-year, multi-million dollar contract to lead the artificial intelligence transformation for a prominent US financial institution." },
+        { "date": "2025-09-19", "source": "Economic Times", "headline": "Attrition rate at TCS drops to a two-year low, signals market stability.", "summary": "TCS reported its attrition rate has fallen to 12.5%, the lowest in eight quarters, indicating improved employee retention and a stabilizing IT job market." },
+        { "date": "2025-09-16", "source": "Business Today", "headline": "TCS to train 100,000 employees on Generative AI skills by 2026.", "summary": "As part of its upskilling initiative, TCS announced a comprehensive program to train one lakh employees in generative AI and related technologies over the next year." }
+      ]
+    },
+    "HDFCBANK.NS": {
+        "name": "HDFC Bank",
+        "sector": "Financials",
+        "industry": "Banking",
+        "market_cap_usd_b": 155.8,
+        "pe_ratio": 19.8,
+        "fifty_two_week_high": 1750.00,
+        "fifty_two_week_low": 1350.00,
+        "about": "HDFC Bank Limited is an Indian banking and financial services company headquartered in Mumbai. It is India's largest private sector bank by assets and world's 10th largest bank by market capitalisation as of April 2021.",
+        "news": [
+            { "date": "2025-09-20", "source": "BloombergQuint", "headline": "HDFC Bank posts record loan growth in Q2, beats estimates.", "summary": "HDFC Bank announced its highest-ever quarterly loan disbursal, with retail and corporate segments showing robust growth, surpassing market expectations." },
+            { "date": "2025-09-17", "source": "Reuters", "headline": "RBI approves HDFC's plan to open 200 new branches in semi-urban areas.", "summary": "The Reserve Bank of India has given its approval for HDFC Bank's expansion plan, which focuses on increasing its presence in Tier 2 and Tier 3 cities across India." }
+        ]
+    },
+    "INFY.NS": {
+        "name": "Infosys",
+        "sector": "Technology",
+        "industry": "IT Services",
+        "market_cap_usd_b": 95.3,
+        "pe_ratio": 27.5,
+        "fifty_two_week_high": 1900.00,
+        "fifty_two_week_low": 1300.00,
+        "about": "Infosys Limited is an Indian multinational information technology company that provides business consulting, information technology and outsourcing services. The company is headquartered in Bangalore.",
+        "news": [
+            { "date": "2025-09-19", "source": "LiveMint", "headline": "Infosys collaborates with NVIDIA on generative AI solutions for enterprises.", "summary": "Infosys announced a strategic collaboration with NVIDIA to co-develop generative AI solutions tailored for clients in the manufacturing and healthcare sectors." },
+            { "date": "2025-09-16", "source": "Business Standard", "headline": "Infosys raises full-year revenue guidance on strong deal pipeline.", "summary": "Buoyed by a series of large deal wins in the first half of the year, Infosys has revised its annual revenue growth forecast upwards from 8% to 10%." }
+        ]
+    },
+    "ICICIBANK.NS": {
+      "name": "ICICI Bank",
+      "sector": "Financials",
+      "industry": "Banking",
+      "market_cap_usd_b": 90.1,
+      "pe_ratio": 18.5,
+      "fifty_two_week_high": 1200.00,
+      "fifty_two_week_low": 850.00,
+      "about": "ICICI Bank Limited is an Indian multinational banking and financial services company with its registered office in Vadodara, Gujarat, and corporate office in Mumbai, Maharashtra.",
+      "news": [
+        { "date": "2025-09-20", "source": "Economic Times", "headline": "ICICI Bank's digital platform 'iMobile Pay' crosses 50 million active users.", "summary": "The bank's flagship digital app has reached a significant milestone, indicating strong user adoption of its digital banking services." }
+      ]
+    },
+    "HINDUNILVR.NS": {
+      "name": "Hindustan Unilever",
+      "sector": "Consumer Staples",
+      "industry": "FMCG",
+      "market_cap_usd_b": 75.5,
+      "pe_ratio": 58.2,
+      "fifty_two_week_high": 2800.00,
+      "fifty_two_week_low": 2200.00,
+      "about": "Hindustan Unilever Limited (HUL) is a British-Dutch manufacturing company headquartered in Mumbai, India. Its products include foods, beverages, cleaning agents, personal care products, water purifiers and consumer goods.",
+      "news": [
+        { "date": "2025-09-18", "source": "Business Standard", "headline": "HUL hikes prices of soaps and detergents by 3-5% amid rising input costs.", "summary": "Hindustan Unilever has implemented a price increase across its home and personal care portfolio to offset the impact of rising raw material costs." }
+      ]
+    },
+    "SBIN.NS": {
+      "name": "State Bank of India",
+      "sector": "Financials",
+      "industry": "Banking",
+      "market_cap_usd_b": 70.8,
+      "pe_ratio": 10.2,
+      "fifty_two_week_high": 700.00,
+      "fifty_two_week_low": 480.00,
+      "about": "State Bank of India is an Indian multinational, public sector banking and financial services statutory body headquartered in Mumbai, Maharashtra.",
+      "news": [
+        { "date": "2025-09-19", "source": "LiveMint", "headline": "SBI's YONO app gets a major overhaul with new investment features.", "summary": "State Bank of India has revamped its YONO digital banking platform, adding new features for mutual fund investments and stock trading." }
+      ]
+    },
+    "BHARTIARTL.NS": {
+      "name": "Bharti Airtel",
+      "sector": "Communication Services",
+      "industry": "Telecom",
+      "market_cap_usd_b": 65.2,
+      "pe_ratio": 45.1,
+      "fifty_two_week_high": 1100.00,
+      "fifty_two_week_low": 700.00,
+      "about": "Bharti Airtel Limited, also known as Airtel, is an Indian multinational telecommunications services company based in New Delhi, India. It operates in 18 countries across South Asia and Africa.",
+      "news": [
+        { "date": "2025-09-21", "source": "Reuters", "headline": "Airtel surpasses 100 million 5G users in India.", "summary": "Bharti Airtel announced it has crossed the 100 million subscriber mark for its 5G services, marking a significant milestone in its next-generation network rollout." }
+      ]
+    },
+    "ITC.NS": {
+        "name": "ITC Limited",
+        "sector": "Consumer Staples",
+        "industry": "FMCG, Hotels, Agri-business",
+        "market_cap_usd_b": 62.1,
+        "pe_ratio": 25.5,
+        "fifty_two_week_high": 500.00,
+        "fifty_two_week_low": 350.00,
+        "about": "ITC Limited is an Indian conglomerate company headquartered in Kolkata, West Bengal. ITC has a diversified presence across industries such as FMCG, hotels, software, packaging, paperboards, specialty papers and agri-business.",
+        "news": [
+            { "date": "2025-09-15", "source": "Business Today", "headline": "ITC Hotels demerger record date set for October.", "summary": "ITC has announced the record date for the demerger of its hotel business, a move aimed at unlocking value for shareholders." }
+        ]
+    },
+    "LT.NS": {
+        "name": "Larsen & Toubro",
+        "sector": "Industrials",
+        "industry": "Engineering & Construction",
+        "market_cap_usd_b": 55.7,
+        "pe_ratio": 30.1,
+        "fifty_two_week_high": 3500.00,
+        "fifty_two_week_low": 2500.00,
+        "about": "Larsen & Toubro Ltd, commonly known as L&T, is an Indian multinational conglomerate, with business interests in engineering, construction, manufacturing, technology and financial services, headquartered in Mumbai.",
+        "news": [
+            { "date": "2025-09-18", "source": "Economic Times", "headline": "L&T Construction wins 'significant' order for a new airport project in the Middle East.", "summary": "The construction arm of L&T has secured a major contract valued between ₹1,000 to ₹2,500 crore for an international airport project." }
+        ]
+    },
+    "WIPRO.NS": {
+        "name": "Wipro",
+        "sector": "Technology",
+        "industry": "IT Services",
+        "market_cap_usd_b": 40.3,
+        "pe_ratio": 21.3,
+        "fifty_two_week_high": 550.00,
+        "fifty_two_week_low": 380.00,
+        "about": "Wipro Limited is an Indian multinational corporation that provides information technology, consulting and business process services. It is headquartered in Bengaluru, Karnataka, India.",
+        "news": [
+            { "date": "2025-09-14", "source": "Reuters", "headline": "Wipro announces partnership with Intel on developing 5G and AI solutions.", "summary": "Wipro has entered a strategic alliance with Intel to accelerate the development and deployment of 5G and AI-driven solutions for its enterprise clients." }
+        ]
+    },
+    "TATAMOTORS.NS": {
+        "name": "Tata Motors",
+        "sector": "Consumer Discretionary",
+        "industry": "Automobile",
+        "market_cap_usd_b": 38.5,
+        "pe_ratio": 15.2,
+        "fifty_two_week_high": 750.00,
+        "fifty_two_week_low": 400.00,
+        "about": "Tata Motors Limited is an Indian multinational automotive manufacturing company, headquartered in Mumbai, India, which is part of the Tata Group.",
+        "news": [
+            { "date": "2025-09-20", "source": "Autocar India", "headline": "Tata Motors unveils its new 'Sierra' electric SUV, launch in early 2026.", "summary": "Tata Motors showcased its much-anticipated Sierra EV concept, confirming a production launch for early 2026 with a promised range of over 500 km." }
+        ]
+    },
+    "MARUTI.NS": {
+        "name": "Maruti Suzuki",
+        "sector": "Consumer Discretionary",
+        "industry": "Automobile",
+        "market_cap_usd_b": 35.1,
+        "pe_ratio": 29.8,
+        "fifty_two_week_high": 11000.00,
+        "fifty_two_week_low": 8000.00,
+        "about": "Maruti Suzuki India Limited, formerly known as Maruti Udyog Limited, is an automobile manufacturer in India. It is a 56.21%-owned subsidiary of the Japanese car and motorcycle manufacturer Suzuki Motor Corporation.",
+        "news": [
+            { "date": "2025-09-12", "source": "Economic Times", "headline": "Maruti Suzuki to invest ₹4,000 crore in a new manufacturing plant in Haryana.", "summary": "The company announced a massive investment in a new production facility to meet the growing demand for its passenger vehicles." }
+        ]
+    },
+    "SUNPHARMA.NS": {
+        "name": "Sun Pharmaceutical",
+        "sector": "Healthcare",
+        "industry": "Pharmaceuticals",
+        "market_cap_usd_b": 34.9,
+        "pe_ratio": 33.4,
+        "fifty_two_week_high": 1300.00,
+        "fifty_two_week_low": 900.00,
+        "about": "Sun Pharmaceutical Industries Limited is an Indian multinational pharmaceutical company headquartered in Mumbai, Maharashtra, that manufactures and sells pharmaceutical formulations and active pharmaceutical ingredients (APIs) primarily in India and the United States.",
+        "news": [
+            { "date": "2025-09-17", "source": "BloombergQuint", "headline": "Sun Pharma gets USFDA approval for a new generic cancer drug.", "summary": "The US Food and Drug Administration has granted approval for Sun Pharma's generic version of a widely used cancer treatment drug, opening up a new market." }
+        ]
+    },
+    "ADANIENT.NS": {
+        "name": "Adani Enterprises",
+        "sector": "Conglomerate",
+        "industry": "Infrastructure, Commodities",
+        "market_cap_usd_b": 34.2,
+        "pe_ratio": 95.1,
+        "fifty_two_week_high": 4200.00,
+        "fifty_two_week_low": 1500.00,
+        "about": "Adani Enterprises is the flagship company of the Adani Group, an Indian multinational conglomerate. It is primarily involved in mining and trading of coal and iron ore, and has diversified into airport operations, data centers and more.",
+        "news": [
+            { "date": "2025-09-16", "source": "Reuters", "headline": "Adani's airport division reports 25% increase in passenger traffic for H1 2025.", "summary": "The airports managed by Adani Enterprises saw a significant jump in passenger footfall in the first half of the fiscal year." }
+        ]
+    },
+    "ZOMATO.NS": {
+        "name": "Zomato",
+        "sector": "Consumer Discretionary",
+        "industry": "Food Tech",
+        "market_cap_usd_b": 15.1,
+        "pe_ratio": 120.5,
+        "fifty_two_week_high": 200.00,
+        "fifty_two_week_low": 50.00,
+        "about": "Zomato is an Indian multinational restaurant aggregator and food delivery company. It provides information, menus and user-reviews of restaurants as well as food delivery options from partner restaurants in select cities.",
+        "news": [
+            { "date": "2025-09-20", "source": "TechCrunch", "headline": "Zomato's Blinkit turns profitable in major metro cities.", "summary": "Zomato's quick-commerce arm, Blinkit, has achieved operational profitability in key metropolitan areas including Delhi, Mumbai, and Bangalore." }
+        ]
+    }
+  },
+  "US_STOCKS": {
+    "AAPL": {
+      "name": "Apple Inc.",
+      "sector": "Technology",
+      "industry": "Consumer Electronics",
+      "market_cap_usd_b": 2850.0,
+      "pe_ratio": 30.2,
+      "fifty_two_week_high": 210.50,
+      "fifty_two_week_low": 150.75,
+      "about": "Apple Inc. is an American multinational technology company that specializes in consumer electronics, software and online services. Headquartered in Cupertino, California, Apple is the largest technology company by revenue.",
+      "news": [
+        { "date": "2025-09-21", "source": "Wall Street Journal", "headline": "Apple's Vision Pro 2 rumored to have a lighter design and longer battery life.", "summary": "Sources suggest the next generation of Apple's spatial computing headset, the Vision Pro 2, will focus on user comfort with significant reductions in weight and improved battery performance." },
+        { "date": "2025-09-18", "source": "CNBC", "headline": "iPhone 17 sales exceed expectations in the first week of launch.", "summary": "Initial sales data for the newly launched iPhone 17 lineup shows stronger-than-expected demand, particularly for the Pro models, easing investor concerns." }
+      ]
+    },
+    "MSFT": {
+        "name": "Microsoft Corporation",
+        "sector": "Technology",
+        "industry": "Software - Infrastructure",
+        "market_cap_usd_b": 2650.0,
+        "pe_ratio": 35.8,
+        "fifty_two_week_high": 450.20,
+        "fifty_two_week_low": 300.10,
+        "about": "Microsoft Corporation is an American multinational technology corporation which produces computer software, consumer electronics, personal computers, and related services.",
+        "news": [
+            { "date": "2025-09-20", "source": "The Verge", "headline": "Microsoft integrates next-gen GPT model into its entire Office 365 suite.", "summary": "Microsoft has announced a deep integration of a new, powerful AI model across Word, Excel, PowerPoint, and Teams, branded as 'Copilot Pro'." },
+            { "date": "2025-09-17", "source": "CNBC", "headline": "Azure cloud revenue grows 28% in Q2, beating Wall Street targets.", "summary": "Microsoft's cloud computing division, Azure, continues its strong growth trajectory, reporting a 28% increase in revenue for the second quarter." }
+        ]
+    },
+    "GOOGL": {
+        "name": "Alphabet Inc.",
+        "sector": "Technology",
+        "industry": "Internet Content & Information",
+        "market_cap_usd_b": 1950.0,
+        "pe_ratio": 26.4,
+        "fifty_two_week_high": 160.00,
+        "fifty_two_week_low": 110.00,
+        "about": "Alphabet Inc. is an American multinational conglomerate holding company headquartered in Mountain View, California. It was created through a restructuring of Google on October 2, 2015, and became the parent company of Google and several former Google subsidiaries.",
+        "news": [
+            { "date": "2025-09-19", "source": "TechCrunch", "headline": "Google announces 'Gemini 2.0', a more powerful and efficient multimodal AI model.", "summary": "Google has unveiled the next iteration of its flagship AI model, Gemini 2.0, which boasts significant improvements in reasoning, coding, and image understanding capabilities." },
+            { "date": "2025-09-16", "source": "Reuters", "headline": "Waymo self-driving cars to launch in two new US cities by end of year.", "summary": "Alphabet's autonomous driving unit, Waymo, is expanding its robotaxi service to Austin and Miami, signaling confidence in its technology and regulatory progress." }
+        ]
+    },
+    "AMZN": {
+        "name": "Amazon.com Inc.",
+        "sector": "Consumer Discretionary",
+        "industry": "E-commerce",
+        "market_cap_usd_b": 1750.0,
+        "pe_ratio": 55.3,
+        "fifty_two_week_high": 200.00,
+        "fifty_two_week_low": 120.00,
+        "about": "Amazon.com, Inc. is an American multinational technology company which focuses on e-commerce, cloud computing, digital streaming, and artificial intelligence.",
+        "news": [
+            { "date": "2025-09-20", "source": "Bloomberg", "headline": "Amazon Web Services (AWS) announces new sovereign cloud for European governments.", "summary": "AWS is launching a new, isolated cloud region in Europe to meet strict data residency and sovereignty requirements for public sector clients." }
+        ]
+    },
+    "NVDA": {
+        "name": "NVIDIA Corporation",
+        "sector": "Technology",
+        "industry": "Semiconductors",
+        "market_cap_usd_b": 1500.0,
+        "pe_ratio": 75.5,
+        "fifty_two_week_high": 950.00,
+        "fifty_two_week_low": 400.00,
+        "about": "Nvidia Corporation is an American multinational technology company incorporated in Delaware and based in Santa Clara, California. It designs graphics processing units for the gaming and professional markets, as well as system on a chip units for the mobile computing and automotive market.",
+        "news": [
+            { "date": "2025-09-21", "source": "AnandTech", "headline": "NVIDIA unveils next-generation 'Blackwell' GPU architecture for AI data centers.", "summary": "CEO Jensen Huang introduced the new Blackwell GPU platform, promising a 4x performance increase in AI training and inference workloads over the previous generation." },
+            { "date": "2025-09-18", "source": "Wall Street Journal", "headline": "NVIDIA's data center revenue now exceeds its gaming revenue for the first time.", "summary": "In a landmark shift, NVIDIA's quarterly earnings report revealed that its data center segment has become its largest source of revenue, driven by insatiable demand for AI chips." }
+        ]
+    },
+    "TSLA": {
+        "name": "Tesla, Inc.",
+        "sector": "Consumer Discretionary",
+        "industry": "Electric Vehicles",
+        "market_cap_usd_b": 850.6,
+        "pe_ratio": 65.2,
+        "fifty_two_week_high": 320.00,
+        "fifty_two_week_low": 150.00,
+        "about": "Tesla, Inc. is an American electric vehicle and clean energy company based in Austin, Texas. Tesla designs and manufactures electric cars, battery energy storage from home to grid-scale, solar panels and solar roof tiles.",
+        "news": [
+            { "date": "2025-09-18", "source": "Reuters", "headline": "Tesla begins production at its new Gigafactory in Mexico.", "summary": "Tesla has officially started vehicle production at its newest Gigafactory located in Monterrey, Mexico, which will focus on building the upcoming compact EV model." }
+        ]
+    },
+    "META": {
+        "name": "Meta Platforms, Inc.",
+        "sector": "Communication Services",
+        "industry": "Social Media",
+        "market_cap_usd_b": 800.2,
+        "pe_ratio": 22.1,
+        "fifty_two_week_high": 400.00,
+        "fifty_two_week_low": 200.00,
+        "about": "Meta Platforms, Inc., doing business as Meta, and formerly known as Facebook, Inc., is an American multinational technology conglomerate based in Menlo Park, California.",
+        "news": [
+            { "date": "2025-09-17", "source": "The Verge", "headline": "Meta's next-gen Quest 4 VR headset to feature full-body tracking.", "summary": "Leaked documents suggest that Meta's upcoming Quest 4 virtual reality headset will incorporate advanced sensors for full-body tracking without external hardware." }
+        ]
+    },
+    "JPM": {
+        "name": "JPMorgan Chase & Co.",
+        "sector": "Financials",
+        "industry": "Banking",
+        "market_cap_usd_b": 450.1,
+        "pe_ratio": 11.5,
+        "fifty_two_week_high": 200.00,
+        "fifty_two_week_low": 140.00,
+        "about": "JPMorgan Chase & Co. is an American multinational investment bank and financial services holding company headquartered in New York City.",
+        "news": [
+            { "date": "2025-09-15", "source": "Wall Street Journal", "headline": "JPMorgan CEO Jamie Dimon warns of persistent inflation pressures.", "summary": "In an investor conference, CEO Jamie Dimon cautioned that inflation may remain higher for longer than the market anticipates, urging the Federal Reserve to remain vigilant." }
+        ]
+    },
+    "V": {
+        "name": "Visa Inc.",
+        "sector": "Financials",
+        "industry": "Payment Processing",
+        "market_cap_usd_b": 440.7,
+        "pe_ratio": 29.8,
+        "fifty_two_week_high": 260.00,
+        "fifty_two_week_low": 200.00,
+        "about": "Visa Inc. is an American multinational financial services corporation headquartered in San Francisco, California. It facilitates electronic funds transfers throughout the world, most commonly through Visa-branded credit cards, debit cards and prepaid cards.",
+        "news": [
+            { "date": "2025-09-19", "source": "Bloomberg", "headline": "Visa reports a 12% increase in cross-border transaction volume as travel rebounds.", "summary": "Visa's latest data shows a strong recovery in international travel, with cross-border transaction volumes seeing double-digit growth." }
+        ]
+    },
+    "JNJ": {
+        "name": "Johnson & Johnson",
+        "sector": "Healthcare",
+        "industry": "Pharmaceuticals",
+        "market_cap_usd_b": 430.2,
+        "pe_ratio": 24.1,
+        "fifty_two_week_high": 180.00,
+        "fifty_two_week_low": 145.00,
+        "about": "Johnson & Johnson is an American multinational corporation founded in 1886 that develops medical devices, pharmaceuticals, and consumer packaged goods.",
+        "news": [
+            { "date": "2025-09-16", "source": "Reuters", "headline": "J&J's new cancer drug receives FDA 'breakthrough therapy' designation.", "summary": "The U.S. FDA has granted a priority review status to a promising new oncology drug developed by Johnson & Johnson, potentially speeding up its approval process." }
+        ]
+    },
+    "WMT": {
+        "name": "Walmart Inc.",
+        "sector": "Consumer Staples",
+        "industry": "Retail",
+        "market_cap_usd_b": 420.5,
+        "pe_ratio": 25.6,
+        "fifty_two_week_high": 170.00,
+        "fifty_two_week_low": 135.00,
+        "about": "Walmart Inc. is an American multinational retail corporation that operates a chain of hypermarkets, discount department stores, and grocery stores from the United States, headquartered in Bentonville, Arkansas.",
+        "news": [
+            { "date": "2025-09-20", "source": "CNBC", "headline": "Walmart expands its drone delivery service to three more states.", "summary": "Walmart is broadening its partnership with drone delivery providers to offer the service in parts of Texas, Arizona, and Florida." }
+        ]
+    },
+    "PG": {
+        "name": "Procter & Gamble",
+        "sector": "Consumer Staples",
+        "industry": "Consumer Products",
+        "market_cap_usd_b": 380.1,
+        "pe_ratio": 26.2,
+        "fifty_two_week_high": 165.00,
+        "fifty_two_week_low": 130.00,
+        "about": "The Procter & Gamble Company is an American multinational consumer goods corporation headquartered in Cincinnati, Ohio, founded in 1837.",
+        "news": [
+            { "date": "2025-09-11", "source": "Wall Street Journal", "headline": "P&G to streamline its brand portfolio, divesting smaller brands.", "summary": "Procter & Gamble announced a strategic review aimed at divesting some of its smaller, non-core brands to focus on its billion-dollar flagship products." }
+        ]
+    },
+    "NFLX": {
+        "name": "Netflix, Inc.",
+        "sector": "Communication Services",
+        "industry": "Streaming",
+        "market_cap_usd_b": 250.8,
+        "pe_ratio": 40.5,
+        "fifty_two_week_high": 600.00,
+        "fifty_two_week_low": 300.00,
+        "about": "Netflix, Inc. is an American subscription streaming service and production company based in Los Gatos, California. Founded in 1997, it offers a library of films and television series through distribution deals as well as its own productions, known as Netflix Originals.",
+        "news": [
+            { "date": "2025-09-18", "source": "Variety", "headline": "Netflix's ad-supported tier crosses 20 million global subscribers.", "summary": "Netflix announced that its lower-cost, ad-supported subscription plan has seen rapid growth, reaching a new milestone of 20 million subscribers worldwide." }
+        ]
+    }
+  }
+}

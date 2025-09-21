@@ -3,72 +3,61 @@ import feedparser
 from datetime import datetime
 import google.generativeai as genai
 import streamlit as st
+from urllib.parse import quote_plus
 
-# ==========================================================
-# CONFIGURATION
-# ==========================================================
+# --- Configuration ---
 GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY"))
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
-# ==========================================================
-# NEWS FETCHER (Google RSS)
-# ==========================================================
-def fetch_news(query: str, max_articles: int = 5) -> str:
+# --- News Fetcher (Google RSS) ---
+@st.cache_data(ttl=900) # Cache news results for 15 minutes
+def fetch_news_for_companies(company_names: list[str], max_articles_per_company: int = 5) -> str:
     """
-    Fetch latest financial news for a company using Google News RSS.
-    Returns a formatted string usable inside Gemini prompt context.
+    Fetches the latest financial news for a list of companies using Google News RSS.
+    Returns a single formatted string of all news, ready to be used as context for Gemini.
     """
-    rss_url = f"https://news.google.com/rss/search?q={query}+stock&hl=en-US&gl=US&ceid=US:en"
-    try:
-        feed = feedparser.parse(rss_url)
-    except Exception as e:
-        return f"❌ Failed to fetch news: {e}"
-
-    articles = []
-    for entry in feed.entries[:max_articles]:
+    print(f"[INFO] Fetching news for: {company_names}")
+    all_news_context = []
+    
+    for name in company_names:
+        query = f'"{name}" stock financial earnings revenue'
+        rss_url = f"https://news.google.com/rss/search?q={quote_plus(query)}&hl=en-US&gl=US&ceid=US:en"
+        
         try:
-            pub_date = datetime(*entry.published_parsed[:6]).strftime("%Y-%m-%d %H:%M")
-        except Exception:
-            pub_date = "Unknown Date"
-        articles.append(f"- [{entry.title}]({entry.link}) ({pub_date})")
+            feed = feedparser.parse(rss_url)
+            articles = []
+            all_news_context.append(f"\n--- RECENT NEWS FOR {name.upper()} ---")
+            
+            for entry in feed.entries[:max_articles_per_company]:
+                try:
+                    pub_date = datetime(*entry.published_parsed[:6]).strftime("%Y-%m-%d")
+                except Exception:
+                    pub_date = "Recent"
+                
+                # We'll just use title and date for a concise context
+                articles.append(f"- {entry.title} ({pub_date})")
 
-    if not articles:
-        return "No recent news found."
+            if not articles:
+                all_news_context.append("No recent news found.")
+            else:
+                all_news_context.extend(articles)
 
-    return "\n".join(articles)
+        except Exception as e:
+            print(f"[ERROR] Failed to fetch news for {name}: {e}")
+            all_news_context.append(f"Failed to fetch news for {name}.")
 
-# ==========================================================
-# GEMINI RESPONSE GENERATOR (RAG)
-# ==========================================================
-def get_gemini_response(
-    question: str,
-    chat_history,
-    companies,
-    docs_context: str = "",
-):
+    return "\n".join(all_news_context)
+
+# --- Gemini Response Generator (RAG) ---
+def get_gemini_response(question: str, news_context: str, chat_history):
     """
-    Generates a response from Gemini for the finance chatbot.
-    Augments context with multiple companies + live news.
+    Generates a response from Gemini, using the provided news as context.
     """
-
-    # normalize input
-    if isinstance(companies, dict):
-        companies = [companies.get("Company Name", "Unknown")]
-    elif isinstance(companies, str):
-        companies = [c.strip() for c in companies.split(",") if c.strip()]
-
     if not GEMINI_API_KEY:
         return "❌ Gemini API key is not configured.", chat_history
 
-    # --- Build the prompt ---
-    system_instruction = """
-    You are "FinChat", a specialized financial assistant AI. 
-    Your purpose is to provide clear, concise, and accurate financial insights.
-    You must answer the user's question based *only* on the context provided.
-    Do not use any external knowledge or make up information.
-    Format your answers clearly using Markdown.
-    If the context does not contain the answer, state that clearly.
+    system_instruction = """You are "FinChat", a specialized financial assistant AI from Pune, India. Your purpose is to provide clear, concise, and accurate financial insights. You must answer the user's question based *only* on the real-time news context provided. Do not use any external knowledge or make up information. Format your answers clearly using Markdown. If the context does not contain the answer, state that you couldn't find the information in the recent news feed.
     """
     
     model = genai.GenerativeModel(
@@ -78,20 +67,19 @@ def get_gemini_response(
     
     chat_session = model.start_chat(history=chat_history)
 
-    prompt = f"CONTEXT:\n{docs_context}\n\nQUESTION: {question}"
+    # Construct the final prompt for the model
+    prompt = f"**LATEST NEWS CONTEXT:**\n{news_context}\n\n**USER'S QUESTION:** {question}\n\n**YOUR ANALYSIS:**"
     
     try:
+        print("[INFO] Sending final prompt with live news context to Gemini...")
         response = chat_session.send_message(prompt)
         
-        # Convert history to list of dicts for consistency
-        dict_history = []
-        for message in chat_session.history:
-            dict_history.append({
-                'role': message.role,
-                'parts': [part.text for part in message.parts]
-            })
+        # Convert history to a serializable format for session state
+        dict_history = [{'role': msg.role, 'parts': [part.text for part in msg.parts]} for msg in chat_session.history]
         
+        print("[SUCCESS] Received response from Gemini.")
         return response.text, dict_history
+        
     except Exception as e:
         st.error(f"An error occurred with the Gemini API: {e}")
-        return "Sorry, I couldn't process your request.", chat_history
+        return "Sorry, I couldn't process your request at the moment.", chat_history

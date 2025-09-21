@@ -1,12 +1,8 @@
 import os
 import google.generativeai as genai
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain.chains.question_answering import load_qa_chain
-from langchain.prompts import PromptTemplate
-from langchain.chains.summarize import load_summarize_chain
-from langchain.docstore.document import Document
 from pypdf import PdfReader
 import docx
 import streamlit as st
@@ -15,6 +11,8 @@ import streamlit as st
 GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", os.environ.get('GEMINI_API_KEY'))
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
+else:
+    print("[ERROR] Gemini API Key not found for Doc Q&A module.")
 
 def get_document_text(uploaded_file):
     """Extracts text from an uploaded PDF or DOCX file."""
@@ -33,15 +31,19 @@ def get_document_text(uploaded_file):
             doc = docx.Document(uploaded_file)
             for para in doc.paragraphs:
                 text += para.text + "\n"
+        print(f"[SUCCESS] Extracted {len(text)} characters from {uploaded_file.name}")
     except Exception as e:
         st.error(f"Error reading file: {e}")
+        print(f"[ERROR] Could not read text from file: {e}")
         return ""
     return text
 
 def get_text_chunks(text):
     """Splits text into manageable chunks."""
+    print("[INFO] Splitting text into chunks...")
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=1000)
     chunks = text_splitter.split_text(text)
+    print(f"[SUCCESS] Text split into {len(chunks)} chunks.")
     return chunks
 
 def get_vector_store(text_chunks):
@@ -50,108 +52,98 @@ def get_vector_store(text_chunks):
         st.error("Cannot create vector store. Check API key or document content.")
         return
     try:
-        # Pass the API key directly to the embeddings model
+        print("[INFO] Creating vector store...")
         embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GEMINI_API_KEY)
         vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
         vector_store.save_local("faiss_index")
+        print("[SUCCESS] Vector store created and saved to 'faiss_index'.")
     except Exception as e:
         st.error(f"Error creating vector store: {e}")
+        print(f"[ERROR] Vector store creation failed: {e}")
 
-def summarize_document_map_reduce(text_chunks):
+def summarize_document_with_full_context(text_chunks):
     """
-    Generates a comprehensive summary using a simplified approach.
+    Generates a comprehensive summary by sending all chunks to the Gemini model at once.
+    This approach leverages the model's large context window.
     """
-    print(f"📄 DOC: Starting summarize_document_map_reduce with {len(text_chunks)} chunks")
-    
+    print(f"📄 DOC: Starting full-context summary with {len(text_chunks)} chunks")
     if not text_chunks or not GEMINI_API_KEY:
         print(f"❌ DOC: Missing text_chunks or GEMINI_API_KEY")
         return "Document is empty, could not be read, or Gemini API key is missing."
 
     try:
-        # Configure Gemini
-        print(f"🤖 DOC: Configuring Gemini API")
-        genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel('gemini-2.0-flash-lite')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
-        # Combine all text chunks
+        # Combine all text chunks into a single string
         combined_text = "\n\n".join(text_chunks)
         print(f"📝 DOC: Combined text length: {len(combined_text)} characters")
         
-        # Create a comprehensive prompt
         prompt = f"""
-        Please analyze the following financial document and provide a comprehensive summary.
+        Please analyze the following financial document and provide a comprehensive, well-organized summary. Your summary should highlight:
+        1.  **Overall Financial Performance:** Key metrics like revenue, profit, and significant trends.
+        2.  **Strategic Initiatives:** Major projects, acquisitions, or changes in business direction.
+        3.  **Identified Risks:** Noteworthy risks or challenges mentioned in the document.
+        4.  **Outlook & Recommendations:** The company's future outlook and any key recommendations provided.
         
         Document Content:
+        ---
         {combined_text}
+        ---
         
-        Please provide a well-organized summary highlighting:
-        1. Overall financial performance (revenue, profit, key metrics)
-        2. Major strategic initiatives or changes
-        3. Noteworthy risks or challenges identified
-        4. Key business insights and recommendations
-        
-        Summary:
+        Comprehensive Summary:
         """
         
-        # Generate summary
-        print(f"🤖 DOC: Generating summary with Gemini")
+        print(f"🤖 DOC: Generating summary with Gemini...")
         response = model.generate_content(prompt)
         print(f"✅ DOC: Summary generated successfully")
         return response.text
         
     except Exception as e:
         print(f"❌ DOC: Error generating summary: {e}")
+        st.error(f"An error occurred during summarization: {e}")
         return f"Error generating summary: {str(e)}"
 
-def get_conversational_chain():
-    """Creates a question-answering chain with a custom prompt."""
-    if not GEMINI_API_KEY:
-        return None
-    
-    try:
-        # Configure Gemini
-        genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel('gemini-2.0-flash-lite')
-        return model
-    except Exception as e:
-        st.error(f"Error configuring Gemini: {e}")
-        return None
-
 def user_input(user_question):
-    """Handles user queries against the document vector store."""
+    """
+    Handles user queries against the document by retrieving relevant chunks and generating an answer.
+    """
+    print(f"📄 DOC: Answering question: '{user_question}'")
     if not GEMINI_API_KEY:
         return "Gemini API key is not configured."
         
     try:
-        # Configure Gemini
-        genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel('gemini-2.0-flash-lite')
-        
-        # Load vector store and get relevant documents
+        # Load the vector store and find relevant documents
+        print("    -> Loading FAISS index...")
         embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GEMINI_API_KEY)
-        new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
-        docs = new_db.similarity_search(user_question)
+        db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
+        print("    -> Searching for relevant chunks...")
+        docs = db.similarity_search(user_question, k=5) # Retrieve top 5 relevant chunks
         
-        # Combine context from relevant documents
         context = "\n\n".join([doc.page_content for doc in docs])
+        print(f"    -> Found {len(docs)} relevant chunks to form context.")
         
-        # Create prompt
+        # Build the prompt and generate the response
+        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = f"""
-        You are a financial analyst assistant. Answer the question as detailed as possible from the provided context.
-        If the answer is not in the provided context, state that clearly. Do not make up information.
+        You are a financial analyst assistant. Answer the question as detailed as possible based *only* on the provided context below.
+        If the answer is not in the context, state that clearly and do not make up information.
 
-        Context:
+        CONTEXT:
+        ---
         {context}
+        ---
 
-        Question: {user_question}
+        QUESTION: {user_question}
 
-        Answer:
+        DETAILED ANSWER:
         """
         
-        # Generate response
+        print("    -> Generating answer with Gemini...")
         response = model.generate_content(prompt)
+        print("✅ DOC: Answer generated successfully.")
         return response.text
         
     except Exception as e:
+        print(f"❌ DOC: Error during user query: {e}")
+        st.error(f"An error occurred while querying the document: {e}")
         return f"Could not query the document. Ensure it was processed correctly. Error: {e}"
-

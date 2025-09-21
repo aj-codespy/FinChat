@@ -1,23 +1,25 @@
 import os
 import pandas as pd
 import plotly.express as px
-import requests
+import finnhub
 import google.generativeai as genai
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 import json
 import streamlit as st
 
 # --- Configuration ---
-# It's recommended to set API keys as environment variables
-# For Streamlit sharing, use st.secrets
 FINNHUB_API_KEY = st.secrets.get("FINNHUB_API_KEY", os.environ.get('FINNHUB_API_KEY'))
 GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", os.environ.get('GEMINI_API_KEY'))
 
-# Initialize clients if keys are available
+# --- Initialize Clients ---
+finnhub_client = None
+if FINNHUB_API_KEY:
+    finnhub_client = finnhub.Client(api_key=FINNHUB_API_KEY)
+
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
-def get_sentiment_and_summary_from_gemini(headline, content, company_name):
+def get_sentiment_and_summary_from_gemini(headline, content, ticker):
     """
     Analyzes sentiment and generates a summary for a news article using a single Gemini API call.
     """
@@ -27,8 +29,8 @@ def get_sentiment_and_summary_from_gemini(headline, content, company_name):
         return {"sentiment": "neutral", "summary": "Invalid headline."}
 
     model = genai.GenerativeModel('gemini-1.5-flash')
-    prompt = f"""
-    Analyze the sentiment of the following news article about {company_name}.
+    prompt = f'''
+    Analyze the sentiment of the following news article about {ticker}.
     The sentiment must be strictly one of: 'positive', 'negative', or 'neutral'.
     Then, provide a concise one-sentence summary of the article.
     
@@ -36,20 +38,17 @@ def get_sentiment_and_summary_from_gemini(headline, content, company_name):
 
     Headline: "{headline}"
     Content: "{content}"
-    """
+    '''
     
     try:
         response = model.generate_content(prompt)
-        # Clean the response to ensure it's valid JSON
         cleaned_response = response.text.strip()
         
-        # Remove markdown code blocks if present
         if cleaned_response.startswith("```json"):
             cleaned_response = cleaned_response[7:]
         if cleaned_response.endswith("```"):
             cleaned_response = cleaned_response[:-3]
         
-        # Try to find JSON object in the response
         start_idx = cleaned_response.find('{')
         end_idx = cleaned_response.rfind('}')
         
@@ -57,10 +56,8 @@ def get_sentiment_and_summary_from_gemini(headline, content, company_name):
             json_str = cleaned_response[start_idx:end_idx + 1]
             result = json.loads(json_str)
         else:
-            # Fallback: try to parse the whole response
             result = json.loads(cleaned_response)
         
-        # Validate keys
         if "sentiment" not in result or "summary" not in result:
              return {"sentiment": "neutral", "summary": "Invalid format from API."}
         return result
@@ -68,44 +65,36 @@ def get_sentiment_and_summary_from_gemini(headline, content, company_name):
         print(f"Error processing article with Gemini: {e}")
         return {"sentiment": "neutral", "summary": "Could not process article."}
 
-
-def fetch_and_process_news(company_name, days=7):
+def fetch_and_process_news(ticker, days=7):
     """
     Fetches news, analyzes sentiment, and generates summaries for a company using Finnhub and Gemini.
     """
-    print(f"🔍 NEWS: Starting fetch_and_process_news for {company_name}")
+    print(f"🔍 NEWS: Starting fetch_and_process_news for {ticker}")
     
-    if not company_name or not FINNHUB_API_KEY:
-        print(f"❌ NEWS: Missing company_name or FINNHUB_API_KEY")
+    if not ticker or not finnhub_client:
+        print(f"❌ NEWS: Missing ticker or Finnhub client is not initialized.")
         st.error("Finnhub API key is not configured. Please set it as an environment variable or Streamlit secret.")
         return pd.DataFrame()
 
-    # Calculate date range
     today = datetime.now().date()
     last_week = today - timedelta(days=days)
-    print(f"📅 NEWS: Date range: {last_week} to {today}")
+    print(f"📅 NEWS: Date range: {last_week.strftime('%Y-%m-%d')} to {today.strftime('%Y-%m-%d')}")
 
     try:
-        # Fetch news from Finnhub using the simpler approach
-        url = f"https://finnhub.io/api/v1/company-news?symbol={company_name.upper()}&from={last_week}&to={today}&token={FINNHUB_API_KEY}"
-        print(f"🌐 NEWS: Fetching from URL: {url[:100]}...")
-        response = requests.get(url)
-        response.raise_for_status()
-        all_articles = response.json()
-        print(f"✅ NEWS: Fetched {len(all_articles)} raw articles from Finnhub")
+        all_articles = finnhub_client.company_news(ticker, _from=last_week.strftime('%Y-%m-%d'), to=today.strftime('%Y-%m-%d'))
+        print(f"✅ NEWS: Fetched {len(all_articles)} raw articles from Finnhub for {ticker}")
         
-        # Handle case where no articles are found
         if not all_articles:
-            print("⚠️ NEWS: No articles found, returning empty DataFrame")
+            print(f"⚠️ NEWS: No articles found for {ticker}, returning empty DataFrame")
             return pd.DataFrame(columns=['Published At', 'Headline', 'Sentiment', 'Summary', 'URL'])
             
     except Exception as e:
-        print(f"❌ NEWS: Error fetching news from Finnhub: {e}")
+        print(f"❌ NEWS: Error fetching news from Finnhub for {ticker}: {e}")
         st.error(f"Error fetching news from Finnhub: {e}")
         return pd.DataFrame(columns=['Published At', 'Headline', 'Sentiment', 'Summary', 'URL'])
 
     processed_articles = []
-    print(f"🔄 NEWS: Processing {len(all_articles)} articles...")
+    print(f"🔄 NEWS: Processing {len(all_articles)} articles for {ticker}...")
     
     for i, article in enumerate(all_articles):
         headline = article.get('headline', '')
@@ -117,7 +106,7 @@ def fetch_and_process_news(company_name, days=7):
 
         if headline and content and "[Removed]" not in headline:
             print(f"🤖 NEWS: Analyzing sentiment for article {i+1}")
-            analysis = get_sentiment_and_summary_from_gemini(headline, content, company_name)
+            analysis = get_sentiment_and_summary_from_gemini(headline, content, ticker)
             
             processed_articles.append({
                 'Published At': published_at,
@@ -127,22 +116,21 @@ def fetch_and_process_news(company_name, days=7):
                 'URL': url
             })
             print(f"✅ NEWS: Added article {i+1} with sentiment: {analysis.get('sentiment', 'neutral')}")
-            # Limit to the top 10 most relevant processed articles
             if len(processed_articles) >= 10:
-                print(f"🛑 NEWS: Reached limit of 10 articles, stopping processing")
+                print(f"🛑 NEWS: Reached limit of 10 articles for {ticker}, stopping processing")
                 break
         else:
             print(f"⏭️ NEWS: Skipping article {i+1} (no headline/content or removed)")
 
-    print(f"📊 NEWS: Processed {len(processed_articles)} articles total")
+    print(f"📊 NEWS: Processed {len(processed_articles)} articles total for {ticker}")
     
     if not processed_articles:
-        print("⚠️ NEWS: No processed articles, returning empty DataFrame")
+        print(f"⚠️ NEWS: No processed articles for {ticker}, returning empty DataFrame")
         return pd.DataFrame()
 
     df = pd.DataFrame(processed_articles)
     df['Date'] = df['Published At'].dt.date
-    print(f"✅ NEWS: Returning DataFrame with shape {df.shape}")
+    print(f"✅ NEWS: Returning DataFrame with shape {df.shape} for {ticker}")
     return df
 
 def create_sentiment_pie_chart(df):
@@ -182,4 +170,3 @@ def create_sentiment_trend_chart(df):
     fig.add_hline(y=0, line_dash="dash", line_color="grey")
     fig.update_layout(template="plotly_dark")
     return fig
-

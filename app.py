@@ -54,7 +54,7 @@ def load_data_for_company(company_name):
         st.session_state.ticker = ticker
         print(f"📈 APP: Ticker mapped to {ticker}")
         
-        print(f"📰 APP: Fetching news for {company_name}")
+        print(f"📰 APP: Fetching news for {company_name} ({ticker})")
         st.session_state.news_df = news_sentiment.fetch_and_process_news(ticker)
         print(f"📊 APP: News DataFrame shape: {st.session_state.news_df.shape}")
         
@@ -105,7 +105,7 @@ with st.sidebar:
             if raw_text:
                 text_chunks = doc_qa.get_text_chunks(raw_text)
                 doc_qa.get_vector_store(text_chunks)
-                st.session_state.doc_summary = doc_qa.summarize_document_map_reduce(text_chunks)
+                st.session_state.doc_summary = doc_qa.summarize_document_with_full_context(text_chunks)
                 st.session_state.doc_processed = True
                 st.success("Document processed! Navigate to 'Doc Chat'.")
             else:
@@ -212,7 +212,7 @@ with tab3:
                 st.markdown(part['text'])
 
     if prompt := st.chat_input("Ask about market trends, compare stocks, etc."):
-        st.session_state.fin_chat_history.append({"role": "user", "parts": [{"text": prompt}]}
+        st.session_state.fin_chat_history.append({"role": "user", "parts": [{"text": prompt}]})
         with st.chat_message("user"):
             st.markdown(prompt)
 
@@ -222,8 +222,7 @@ with tab3:
             combined_context = f"{news_context}\n\n{doc_context}"
             
             response_text, updated_history = chat.get_gemini_response(
-                prompt, st.session_state.fin_chat_history,
-                st.session_state.company_info, combined_context
+                prompt, combined_context, st.session_state.fin_chat_history
             )
             st.session_state.fin_chat_history = updated_history
             
