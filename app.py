@@ -78,7 +78,7 @@ def render_stock_analyzer_page():
     c1, c2 = st.columns(2)
     with c1:
         st.subheader("Top 15 Companies by Market Cap")
-        fig1 = px.bar(filtered_df.nlargest(15, 'market_cap_usd_b'), x='name', y='market_cap_usd_b', color='sector')
+        fig1 = px.bar(filtered_df.nlargest(15, 'market_cap_usd_b'), x='Company-Name', y='Market-Cap', color='sector')
         st.plotly_chart(fig1, use_container_width=True)
     with c2:
         st.subheader("Sector Composition by Company Count")
