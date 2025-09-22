@@ -78,8 +78,21 @@ def render_stock_analyzer_page():
     c1, c2 = st.columns(2)
     with c1:
         st.subheader("Top 15 Companies by Market Cap")
-        fig1 = px.bar(filtered_df.nlargest(15, 'market_cap_usd_b'), x='name', y='market_cap_usd_b', color='sector')
+        
+        # --- CHANGE IS HERE ---
+        # The 'labels' argument is added to set custom display names for the chart axes.
+        fig1 = px.bar(
+            filtered_df.nlargest(15, 'market_cap_usd_b'), 
+            x='name', 
+            y='market_cap_usd_b', 
+            color='sector',
+            labels={
+                "name": "Company-Name",
+                "market_cap_usd_b": "Market-Cap (USD Billions)"
+            }
+        )
         st.plotly_chart(fig1, use_container_width=True)
+        
     with c2:
         st.subheader("Sector Composition by Company Count")
         fig3 = px.pie(filtered_df, names='sector')
